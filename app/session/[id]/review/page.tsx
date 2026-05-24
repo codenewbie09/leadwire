@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 interface Message {
   id: string;
@@ -12,6 +12,7 @@ interface Message {
 
 interface SessionData {
   id: string;
+  scenarioId: string;
   prospectName: string;
   status: "active" | "completed";
   feedback: {
@@ -33,8 +34,10 @@ interface SessionData {
 
 export default function ReviewPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const [session, setSession] = useState<SessionData | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -51,6 +54,29 @@ export default function ReviewPage() {
   async function fetchMessages() {
     const res = await fetch(`/api/messages?sessionId=${id}`);
     if (res.ok) setMessages(await res.json());
+  }
+
+  async function copyShareLink() {
+    const url = `${window.location.origin}/share/${id}`;
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  async function tryAgain() {
+    if (!session?.scenarioId || !session?.prospectName) return;
+    const res = await fetch("/api/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        scenarioId: session.scenarioId,
+        prospectName: session.prospectName,
+      }),
+    });
+    if (res.ok) {
+      const newSession = await res.json();
+      router.push(`/session/${newSession.id}`);
+    }
   }
 
   const feedback = session?.feedback;
@@ -76,6 +102,12 @@ export default function ReviewPage() {
       </header>
 
       <div className="max-w-3xl mx-auto px-6 py-8">
+        {!feedback && session?.status === "completed" && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-8 text-sm text-yellow-800 text-center">
+            Feedback unavailable
+          </div>
+        )}
+
         {feedback && (
           <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Scorecard</h2>
@@ -121,6 +153,20 @@ export default function ReviewPage() {
                 <p className="text-sm text-blue-800">{feedback.notes}</p>
               </div>
             )}
+            <div className="mt-6 flex items-center gap-3">
+              <button
+                onClick={copyShareLink}
+                className="flex-1 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                {copied ? "Copied!" : "Share"}
+              </button>
+              <button
+                onClick={tryAgain}
+                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
           </div>
         )}
 

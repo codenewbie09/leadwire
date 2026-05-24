@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { sessions } from "@/db/schema";
+import { sessions, messages as messagesTable, scenarios } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function GET(req: NextRequest) {
@@ -16,18 +16,28 @@ export async function GET(req: NextRequest) {
     .where(eq(sessions.scenarioId, scenarioId))
     .orderBy(sessions.createdAt);
 
-  const header = "Prospect Name,Status,Turns,Booked Date,Summary\n";
-  const rows = all
-    .map((s) => {
-      const feedback = s.feedback as Record<string, unknown> | null;
-      const summary = feedback?.notes
-        ? `"${String(feedback.notes).replace(/"/g, '""')}"`
-        : "";
-      return `${s.prospectName},${s.status},,${s.createdAt?.toISOString?.() || ""},${summary}`;
-    })
-    .join("\n");
+  const scenario = await db.query.scenarios.findFirst({
+    where: eq(scenarios.id, scenarioId),
+  });
 
-  return new NextResponse(header + rows, {
+  const rows = await Promise.all(
+    all.map(async (s) => {
+      const msgs = await db
+        .select()
+        .from(messagesTable)
+        .where(eq(messagesTable.sessionId, s.id));
+      const turns = msgs.length;
+      const feedback = s.feedback as Record<string, unknown> | null;
+      const overallScore = feedback?.overall ?? "";
+      const completedDate = s.createdAt?.toISOString?.() ?? "";
+      const prospectName = `"${s.prospectName.replace(/"/g, '""')}"`;
+      const difficulty = scenario?.difficulty ?? "";
+      return `${prospectName},${difficulty},${s.status},${turns},${overallScore},${completedDate}`;
+    }),
+  );
+
+  const header = "Prospect Name,Difficulty,Status,Turns,Overall Score,Completed Date\n";
+  return new NextResponse(header + rows.join("\n"), {
     headers: {
       "Content-Type": "text/csv",
       "Content-Disposition": "attachment; filename=sessions.csv",

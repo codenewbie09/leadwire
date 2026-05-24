@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { scenarios } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {
   const { title, personaDescription, industry, difficulty } = await req.json();
@@ -19,7 +19,10 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-  const all = await db.select().from(scenarios).orderBy(scenarios.createdAt);
+  const all = await db
+    .select()
+    .from(scenarios)
+    .orderBy(sql`${scenarios.createdAt} DESC`);
   return NextResponse.json(all);
 }
 
