@@ -2,9 +2,13 @@
 
 Practice sales conversations against AI prospects that respond in-character based on their persona, pain points, and personality. Get scored on opener quality, qualification, objection handling, and closing technique.
 
-## Live Demo
+## Demo
 
 https://pp-sales.vercel.app
+
+<video src="https://github.com/codenewbie09/pitchperfect/raw/main/pitchperfect-demo.mp4" controls width="100%" style="max-width: 720px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.15);"></video>
+
+*Demo video rendered with [Remotion](https://remotion.dev) — 57s, 1280x720.*
 
 ## How it works
 
