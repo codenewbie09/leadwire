@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
-import GitHub from "next-auth/providers/github";
+import Credentials from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "@/db";
 import { authUsers, authAccounts, authSessions, authVerificationTokens } from "@/db/schema";
@@ -12,7 +12,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     sessionsTable: authSessions,
     verificationTokensTable: authVerificationTokens,
   }),
-  providers: [Google, GitHub],
+  providers: [
+    Google,
+    Credentials({
+      id: "guest",
+      name: "Guest",
+      credentials: {},
+      async authorize() {
+        const suffix = Math.random().toString(36).slice(2, 8);
+        return {
+          name: `Guest-${suffix}`,
+          email: `guest-${suffix}@pitchperfect.local`,
+        };
+      },
+    }),
+  ],
   pages: {
     signIn: "/",
   },
