@@ -71,12 +71,7 @@ export default async function LandingPage() {
                 Sign in with Google
               </button>
             </form>
-            <form
-              action={async () => {
-                "use server";
-                await signIn("guest", { redirectTo: "/dashboard" });
-              }}
-            >
+            <form action="/api/auth/guest" method="POST">
               <button className="w-full sm:w-auto bg-gray-100 border border-gray-300 text-gray-700 px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
                 <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
