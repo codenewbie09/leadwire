@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
-import { Geist } from "next/font/google";
-import { cn } from "@/lib/utils";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
 export const metadata: Metadata = {
   title: "PitchPerfect — AI Sales Roleplay Training",
@@ -17,9 +20,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={cn("h-full antialiased", "font-sans", geist.variable)}>
-      <body className="min-h-full flex flex-col bg-white text-gray-900">
-        <SessionProvider>{children}</SessionProvider>
+    <html lang="en" className={`${inter.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col">
+        <SessionProvider>
+          <TooltipProvider>{children}</TooltipProvider>
+        </SessionProvider>
       </body>
     </html>
   );
